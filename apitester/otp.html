@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    email<input type="email" id="mail"><br>
+    or  <br>
+    countrycode<input type="text" id="ccode"><br>
+    mobile<input type="mobile" id="mob"><br>
+    <button onclick="vinothsend()">Send OTP</button><br>
+    Enter OTP <input type="text" id="otp">
+    <br>
+    <a href="pass_signup.html"> <button id="pass" onclick="password()">Password</button></a>
+   
+
+    <script>
+        function vinothsend(){
+            var Data=document.querySelector('#mail').value
+            var Data1=document.querySelector('#ccode').value
+            var Data2=document.querySelector('#mob').value
+            console.log(Data);
+            console.log(Data1);
+            console.log(Data2);
+
+            let postObj = { 
+                            
+                            "email": Data,
+                            "mobile":Data2,
+                            "countrycode":Data1
+                        }
+                        let post = JSON.stringify(postObj)
+ 
+                                const url = "http://65.2.78.121:8080/sendotp"
+                                let xhr = new XMLHttpRequest()
+                                
+                                xhr.open('POST', url, true)
+                                xhr.setRequestHeader('Content-type', 'application/json; charset=UTF-8')
+                                xhr.send(post);
+                                
+                                xhr.onload = function () {
+                                    if(xhr.status === 201) {
+                                        console.log("Post successfully created!") 
+                                    }
+                                }
+                            }
+        function password(){
+            var Data=document.querySelector('#mail').value
+            var Data1=document.querySelector('#mob').value
+            var Data2=document.querySelector('#otp').value
+            var Data3=document.querySelector('#ccode').value
+            console.log(Data)
+            console.log(Data1)
+            console.log(Data2)
+            let postObj = { 
+                            
+                            "email": Data,
+                            "countrycode":Data3,
+                            "mobile":Data1,
+                            "otp":Data2
+                        
+                        }
+                        let post = JSON.stringify(postObj)
+ 
+                                const url = "http://65.2.78.121:8080/verifyandtopass"
+                                let xhr = new XMLHttpRequest()
+                                
+                                xhr.open('POST', url, true)
+                                xhr.setRequestHeader('Content-type', 'application/json; charset=UTF-8')
+                                xhr.send(post);
+                                
+                                xhr.onload = function () {
+                                    if(xhr.status === 201) {
+                                        console.log("Post successfully created!") 
+                                    }
+                                }
+                            }
+        
+                
+    </script>
+</body>
+</html>
+
+<!-- {
+    "countrycode":"+91",
+    "mobile":"9655373273"
+} -->

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="email" id="inp">
+    <button onclick="vinothsend()">Send OTP</button>
+
+    <script>
+        function vinothsend(){
+            var Data=document.querySelector('#inp').value
+            console.log(Data);
+            let postObj = { 
+                            
+                            "password":Data
+                        }
+                        let post = JSON.stringify(postObj)
+ 
+                                const url = "http://65.2.78.121:8080/signup"
+                                let xhr = new XMLHttpRequest()
+                                
+                                xhr.open('POST', url, true)
+                                xhr.setRequestHeader('Content-type', 'application/json; charset=UTF-8')
+                                xhr.send(post);
+                                
+                                xhr.onload = function () {
+                                    if(xhr.status === 201) {
+                                        console.log("Post successfully created!") 
+                                    }
+                                }
+                            }
+                
+    </script>
+</body>
+</html>
