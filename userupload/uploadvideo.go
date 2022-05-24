@@ -2,42 +2,77 @@ package userupload
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"sha/cassession"
+	"sha/signup"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/gocql/gocql"
 	"github.com/google/uuid"
 )
 
 func UploadVideos(w http.ResponseWriter, r *http.Request) {
 	var VideoDetails UploadVideo
-	VideoDetails.VideoID = uuid.New().String()
+	VideoDetails.VideouID = gocql.UUID(uuid.New())
 	VideoDetails.Createddatetime = time.Now().Format("2006-01-02 15:04:05")
-	req, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("error while read video Details from User")
-	}
-	json.Unmarshal(req, &VideoDetails)
-	// Open the file
 	r.ParseMultipartForm(32 << 20)
-	file, handler, err := r.FormFile("myfile")
-	fmt.Println("file info")
-	fmt.Println("file Name" + handler.Filename)
-	// file, err := os.Open(handler.Filename)
-	// file, err := os.OpenFile(handler.Filename, os.O_WRONLY|os.O_CREATE, 0666) //)os.O_RDWR, 0644 //os.O_RDONLY, 0644
+	VideoDetails.AgeGroup = r.Form.Get("agegroup")
+	VideoDetails.Title = r.Form.Get("title")
+	VideoDetails.Description = r.Form.Get("description")
+	for _, gen := range strings.Split(r.Form.Get("genres"), ",") {
+		VideoDetails.Genres = append(VideoDetails.Genres, string(gen))
+	}
+	for _, gen := range strings.Split(r.Form.Get("tags"), ",") {
+		VideoDetails.Tags = append(VideoDetails.Tags, string(gen))
+	}
+	VideoDetails.Language = r.Form.Get("language")
+	//Get Usermail/Mobile From the Browser Cokkie
+	tokenCookie, _ := r.Cookie("token")
+	a := string(tokenCookie.Value)
+
+	base64Text := make([]byte, base64.URLEncoding.DecodedLen(len(strings.Split(a, ".")[1])))
+	base64.StdEncoding.Decode(base64Text, []byte(strings.Split(a, ".")[1]))
+	str := string(base64Text)
+	findcolon := strings.Index(str, ":")
+	findcomma := strings.Index(str, ",")
+	VideoDetails.Mail = str[findcolon+2 : findcomma-1]
+	//thumnail start
+	// Read the entire file into a byte slice
+	// VideoDetails.Mail = "jk@gmail.com"
+	file1, handler1, err := r.FormFile("myimage")
+
 	if err != nil {
-		fmt.Println("error in openfile")
+		log.Fatal(err)
+	}
+	defer file1.Close()
+	filesize1 := handler1.Size
+	buffer1 := make([]byte, filesize1)
+	file1.Read(buffer1)
+	var base64Encoding string
+
+	// Determine the content type of the image file
+	mimeType := http.DetectContentType(buffer1)
+	base64Encoding += "data:" + mimeType + ";base64,"
+	// Append the base64 encoded output
+	base64Encoding += toBase64(buffer1)
+	VideoDetails.Thumnail = base64Encoding
+	//end thumnail
+	file, handler, err := r.FormFile("myfile")
+	if err != nil {
+		fmt.Println("error in video openfile")
 	}
 	defer file.Close()
 
-	// stats, _ := file.Stat()
 	if err != nil {
 		fmt.Println("error while find Length of the video")
+		fmt.Println(err)
 	}
 	fileSize := handler.Size
 	FileSizeInMB := (float64)(fileSize / 1024)
@@ -90,7 +125,7 @@ func UploadVideos(w http.ResponseWriter, r *http.Request) {
 
 		// Detract the current part size from remaining
 		remaining -= currentSize
-		fmt.Printf("Part %v complete, %v btyes remaining\n", partNum, remaining)
+		// fmt.Printf("Part %v complete, %v btyes remaining\n", partNum, remaining)
 
 		// Add the completed part to our list
 		completedParts = append(completedParts, completed)
@@ -108,19 +143,51 @@ func UploadVideos(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
+		w.WriteHeader(http.StatusNotAcceptable)
 		fmt.Println(err)
 		fmt.Println("error hit 3")
 	} else {
-		// Url := *resp.Location
-		fmt.Println(FileSizeInMB / 1024)
+
+		VideoDetails.VideoLink = *resp.Location
+		VideoDetails.Etag = *resp.ETag
 		VideoDetails.VideoSizeInMb = FileSizeInMB / 1024
-		fmt.Println(*resp.Location)
-		fmt.Println(*resp.Key)
-		if err := cassession.Session.Query("insert into videos (videouid,videolink,videosizeinmb,title,description,language,geners,agegroup,createddatetime,mail)values(?,?,?,?,?,?,?,?,?,?)",
-			VideoDetails.VideoID, *resp.Location, VideoDetails.VideoSizeInMb, VideoDetails.Title, VideoDetails.Description, VideoDetails.Language, VideoDetails.Genres, VideoDetails.AgeGroup, VideoDetails.Createddatetime, VideoDetails.Mail).Exec(); err != nil {
-			fmt.Println("error while insert VideoDetails into the Videos table")
+
+		if signup.ValidateEmail(VideoDetails.Mail) && VideoDetails.Etag != "" {
+			var etagfromDb string
+			resEtag := cassession.Session.Query("select etag from videos where etag=? allow filtering", VideoDetails.Etag)
+			resEtag.Scan(&etagfromDb)
+			if etagfromDb != VideoDetails.Etag {
+				res := cassession.Session.Query("select uid from signup where usermail=? allow filtering;", VideoDetails.Mail)
+				res.Scan(&VideoDetails.UserId)
+				fmt.Println(VideoDetails.UserId)
+				if err := cassession.Session.Query("insert into videos (videouid,videolink,videosizeinmb,title,description,language,genres,tags,agegroup,createddatetime,useruid,thumnail,etag)values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+					VideoDetails.VideouID, VideoDetails.VideoLink, VideoDetails.VideoSizeInMb, VideoDetails.Title, VideoDetails.Description, VideoDetails.Language, VideoDetails.Genres, VideoDetails.Tags, VideoDetails.AgeGroup, VideoDetails.Createddatetime, VideoDetails.UserId, VideoDetails.Thumnail, VideoDetails.Etag).Exec(); err != nil {
+					fmt.Println("error while insert VideoDetails into the Videos table")
+					fmt.Println(err)
+				}
+			} else {
+				fmt.Println("video already exist")
+			}
+
+		} else if signup.ValidateMobile(VideoDetails.Mail) && VideoDetails.Etag != "" {
+			var etagfromDb string
+			resEtag := cassession.Session.Query("select etag from videos where etag=? allow filtering", VideoDetails.Etag)
+			resEtag.Scan(&etagfromDb)
+			if etagfromDb != VideoDetails.Etag {
+				res := cassession.Session.Query("select uid from signup where mobile=? allow filtering;", VideoDetails.Mail)
+				res.Scan(&VideoDetails.UserId)
+				if err := cassession.Session.Query("insert into videos (videouid,videolink,videosizeinmb,title,description,language,genres,tags,agegroup,createddatetime,useruid,thumnail,etag)values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+					VideoDetails.VideouID, VideoDetails.VideoLink, VideoDetails.VideoSizeInMb, VideoDetails.Title, VideoDetails.Description, VideoDetails.Language, VideoDetails.Genres, VideoDetails.Tags, VideoDetails.AgeGroup, VideoDetails.Createddatetime, VideoDetails.UserId, VideoDetails.Thumnail, VideoDetails.Etag).Exec(); err != nil {
+					fmt.Println("error while insert VideoDetails into the Videos table")
+					fmt.Println(err)
+				}
+			} else {
+				fmt.Println("video already exist")
+			}
 		}
-		fmt.Println("video uploaded success")
+
+		p := signup.Result{Status: true, Message: "Video uploaded successfully"}
+		json.NewEncoder(w).Encode(p)
 	}
 }
 
@@ -159,4 +226,7 @@ func Upload(resp *s3.CreateMultipartUploadOutput, fileBytes []byte, partNum int)
 	}
 
 	return nil, nil
+}
+func toBase64(b []byte) string {
+	return base64.StdEncoding.EncodeToString(b)
 }

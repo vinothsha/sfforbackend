@@ -1,17 +1,17 @@
-package signin
+package signinout
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"regexp"
 	"time"
 
 	"sha/cassession"
+	"sha/signup"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/dongri/phonenumber"
+	"github.com/gocql/gocql"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -28,6 +28,17 @@ type Claims struct {
 	Email string `json:"email"`
 	jwt.StandardClaims
 }
+type SigninEmailStruct struct {
+	SendStatus signup.Result `json:"sendstatus"`
+	UserId     gocql.UUID    `json:"userid"`
+	UserEmail  string        `json:"useremail"`
+}
+type SigninMobileStruct struct {
+	SendStatus  signup.Result `json:"sendstatus"`
+	UserId      gocql.UUID    `json:"userid"`
+	UserMobile  string        `json:"usermobile"`
+	CountryCode string        `json:"countrycode"`
+}
 
 func Signin(w http.ResponseWriter, r *http.Request) {
 	var user User
@@ -36,13 +47,12 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error in read data")
 	}
 	json.Unmarshal(req, &user)
-	if ValidateEmail(user.Email) && user.Email != "" {
+	if signup.ValidateEmail(user.Email) && user.Email != "" {
 		var checkpass User
 		res := cassession.Session.Query("select password from signup where usermail=? allow filtering", user.Email)
 		res.Scan(&checkpass.Password)
-		fmt.Println(checkpass.Password)
 		if CheckPasswordHash(user.Password, checkpass.Password) {
-			expirationTime := time.Now().Add(time.Second * 30)
+			expirationTime := time.Now().Add(time.Minute * 30)
 			claims := &Claims{
 				Email: user.Email,
 				StandardClaims: jwt.StandardClaims{
@@ -51,7 +61,6 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			}
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 			tokenString, err := token.SignedString(jwtKey)
-			fmt.Println(tokenString)
 			if err != nil {
 				fmt.Println("error in jwt toke produce")
 				return
@@ -61,21 +70,24 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				Value:   tokenString,
 				Expires: expirationTime,
 			})
+			var uid gocql.UUID
+			res1 := cassession.Session.Query("select uid from signup where usermail=? allow filtering", user.Email)
+			res1.Scan(&uid)
+			p := SigninEmailStruct{SendStatus: signup.Result{Status: true, Message: "Signin Successfully"}, UserId: uid, UserEmail: user.Email}
+			json.NewEncoder(w).Encode(p)
 
-			fmt.Println("loged in successfully")
-			fmt.Fprintln(w, "homepage")
 		} else {
-			fmt.Println("Invalid email/ password")
+			w.WriteHeader(http.StatusNotAcceptable)
+			p := signup.Result{Status: false, Message: "invalid mobile/email or password"}
+			json.NewEncoder(w).Encode(p)
 		}
-	} else if ValidateMobile(user.Mobile) {
-		fmt.Println("this is a mobile number")
+	} else if signup.ValidateMobile(user.Mobile) {
 		var checkpass User
 		res := cassession.Session.Query("select password from signup where mobile=? allow filtering", user.Mobile)
 		res.Scan(&checkpass.Password)
-		fmt.Println(checkpass.Password)
 		if CheckPasswordHash(user.Password, checkpass.Password) {
-			expirationTime := time.Now().Add(time.Minute * 1)
-			mob := user.CountryCode + user.Mobile
+			expirationTime := time.Now().Add(time.Minute * 30)
+			mob := user.Mobile
 			claims := &Claims{
 				Email: mob,
 				StandardClaims: jwt.StandardClaims{
@@ -84,7 +96,6 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			}
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 			tokenString, err := token.SignedString(jwtKey)
-			fmt.Println(tokenString)
 			if err != nil {
 				fmt.Println("error in jwt toke produce")
 				return
@@ -94,17 +105,25 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 				Value:   tokenString,
 				Expires: expirationTime,
 			})
+			var uid gocql.UUID
+			res1 := cassession.Session.Query("select uid from signup where mobile=? allow filtering", user.Mobile)
+			res1.Scan(&uid)
+			var ccode string
+			res1 = cassession.Session.Query("select countrycode from signup where mobile=? allow filtering", user.Mobile)
+			res1.Scan(&ccode)
+			p := SigninMobileStruct{SendStatus: signup.Result{Status: true, Message: "Signin Successfully"}, UserId: uid, UserMobile: user.Mobile, CountryCode: ccode}
+			json.NewEncoder(w).Encode(p)
 
-			fmt.Println("loged in successfully")
-			fmt.Fprintln(w, "homepage")
 		} else {
-			fmt.Println("Invalid email/ password")
+			w.WriteHeader(http.StatusNotAcceptable)
+			p := signup.Result{Status: false, Message: "invalid mobile/email or password"}
+			json.NewEncoder(w).Encode(p)
+
 		}
 	}
 }
 func IsAuthorized(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("isauth is called")
 		cookie, err := r.Cookie("token")
 		if err != nil {
 			if err == http.ErrNoCookie {
@@ -137,25 +156,7 @@ func IsAuthorized(handler http.HandlerFunc) http.HandlerFunc {
 	}
 
 }
-func Home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("hello this is a Home Page"))
-}
-func ValidateEmail(email string) bool {
-	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	return emailRegex.MatchString(email)
-}
-func ValidateMobile(email string) bool {
-	number := phonenumber.Parse(email, "")
-	re := regexp.MustCompile(`^(?:(?:\(?(?:00|\+)([1-4]\d\d|[1-9]\d?)\)
-	?)?[\-\.\ \\\/]?)?((?:\(?\d{1,}\)?[\-\.\ \\\/]?){0,})(?:[\-\.\ \\\/]?(?:#|ext\.?|extension|x)[\-\.\ \\\/]?(\d+))?$`)
-	return re.MatchString(number)
-}
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	fmt.Println(err == nil)
-	fmt.Println(password, hash)
-	return err == nil
-}
+
 func Refresh(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("token")
 	if err != nil {
@@ -214,6 +215,15 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		})
 
 }
+
+func Home(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("hello this is a Home Page"))
+}
+
 func CheckAPI(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("this api is working...This is a get method for check... Other Method Or Post Method..."))
+}
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

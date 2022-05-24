@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>HTML Forms</h2>
+
+<form action="http://localhost:8080/upload" enctype="multipart/form-data"  method="POST">
+  <label for="title">Title</label><br>
+
+  <input type="text" id="title" name="title" placeholder="Title"><br>
+
+  <label for="description">Description:</label><br>
+
+  <input type="text" id="description" name="description" placeholder="Description"><br><br>
+
+  
+  <label for="language">Language</label><br>
+
+  <input type="text" id="language" name="language" placeholder="language"><br>
+
+  <label for="genres">Genres</label><br>
+
+  <input type="text" id="genres" name="genres" placeholder="genres"><br><br>
+
+  <label for="agegroup">Agegroup</label><br>
+
+  <input type="text" id="agegroup" name="agegroup" placeholder="agegroup"><br>
+
+  <label for="tags">Tags</label><br>
+
+  <input type="text" id="tags" name="tags" placeholder="tags"><br><br>
+
+  <label for="myfile">Select Video:</label><br>
+  <input type="file" id="myfile" name="myfile" accept="video/*"><br>
+  <label for="myimage">Select Thumnail:</label><br>
+  <input type="file" id="myimage" name="myimage" accept="image/*">
+  <input type="submit">
+</form> 
+
+<p>If you click the "Submit" button, the form-data will be sent to a page called "/action_page.php".</p>
+
+</body>
+</html>
+

@@ -7,19 +7,27 @@
     <title>Document</title>
 </head>
 <body>
-    <input type="email" id="inp">
-    <button onclick="vinothsend()">Send OTP</button>
+    <label for="email">Email</label><br>
+
+    <input type="text" id="email" name="email" placeholder="email"><br>
+  
+    <label for="password">Tags</label><br>
+  
+    <input type="text" id="password" name="password" placeholder="password"><br><br>
+    <button onclick="signin()">Send OTP</button>
 
     <script>
-        function vinothsend(){
-            var Data=document.querySelector('#inp').value
+        function signin(){
+            var Data=document.querySelector('#email').value
+            var Data1=document.querySelector('#password').value
             console.log(Data);
             let postObj = { 
-                            "password":Data
+                            "email":Data,
+                            "password":Data1
                         }
                         let post = JSON.stringify(postObj)
  
-                                const url = "http://13.233.122.2:8080/signup"
+                                const url = "http://localhost:8080/signin"
                                 let xhr = new XMLHttpRequest()
                                 
                                 xhr.open('POST', url, true)
@@ -34,5 +42,6 @@
                             }
                 
     </script>
+
 </body>
 </html>

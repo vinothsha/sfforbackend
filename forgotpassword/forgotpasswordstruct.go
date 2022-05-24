@@ -1,5 +1,7 @@
 package forgotpassword
 
+import "github.com/gocql/gocql"
+
 type PasswordReset struct {
 	Email       string `json:"email"`
 	CountryCode string `json:"countrycode"`
@@ -12,9 +14,9 @@ type OtpVerify struct {
 	Otp         string `json:"otp"`
 }
 type NewPassword struct {
-	UniqueId    string `json:"uniqueid"`
-	Email       string `json:"email"`
-	CountryCode string `json:"countrycode"`
-	Mobile      string `json:"mobile"`
-	Password    string `json:"password"`
+	UniqueId    gocql.UUID `json:"uniqueid"`
+	Email       string     `json:"email"`
+	CountryCode string     `json:"countrycode"`
+	Mobile      string     `json:"mobile"`
+	Password    string     `json:"password"`
 }

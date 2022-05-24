@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="myForm" method="POST" enctype="multipart/form-data" >
+        <label for="title">Title</label><br>
+      
+        <input type="text" id="title" name="title" placeholder="Title"><br>
+      
+        <label for="description">Description:</label><br>
+      
+        <input type="text" id="description" name="description" placeholder="Description"><br><br>
+      
+        
+        <label for="language">Language</label><br>
+      
+        <input type="text" id="language" name="language" placeholder="language"><br>
+      
+        <label for="genres">Genres</label><br>
+      
+        <input type="text" id="genres" name="genres" placeholder="genres"><br><br>
+      
+        <label for="agegroup">Agegroup</label><br>
+      
+        <input type="text" id="agegroup" name="agegroup" placeholder="agegroup"><br>
+      
+        <label for="tags">Tags</label><br>
+      
+        <input type="text" id="tags" name="tags" placeholder="tags"><br><br>
+      
+        <label for="myfile">Select Video:</label><br>
+        <input type="file" id="myfile" name="myfile" accept="video/*"><br>
+        <label for="myimage">Select Thumnail:</label><br>
+        <input type="file" id="myimage" name="myimage" accept="image/*">
+       <button id="submit"></button>
+      </form> 
+      <div></div>
+      <script>
+           var form = document.querySelector("#myForm");
+            form.addEventListener('submit', function(ev) {
+
+            var oOutput = document.querySelector("div"),
+                oData = new FormData(form);
+                console.log(form)
+             oData.append("CustomField", "This is some extra data");
+
+            var oReq = new XMLHttpRequest();
+            oReq.open("POST", "http://3.110.103.157:8080/upload", true);
+            oReq.onload = function(oEvent) {
+                if (oReq.status == 200) {
+                oOutput.innerHTML = "Uploaded!";
+                } else {
+                oOutput.innerHTML = "Error " + oReq.status + " occurred when trying to upload your file.<br \/>";
+                }
+            };
+            console.log(oData)
+            oReq.send(oData);
+            ev.preventDefault();
+            }, false);
+      </script>
+</body>
+</html>
+
+
+<!-- //   const myForm=document.getElementById('myForm')
+        //   myForm.addEventListener('submit',function(e){
+        //       e.preventDefault();
+        //       const formData=new FormData(this)
+        //       const searchParams=new URLSearchParams()
+        //       const config = { headers: {  } };
+        //       for (const pair of formData){
+        //           searchParams.append(pair[0],pair[1])
+        //           console.log(pair[0],pair[1])
+        //       }
+        //       var xhr = new XMLHttpRequest();
+        //         xhr.open("POST", 'http://localhost:8080/upload', true);
+
+        //         //Send the proper header information along with the request
+        //         xhr.setRequestHeader("Content-Type",  "multipart/form-data" );
+
+        //         xhr.onreadystatechange = function() { 
+
+        //             if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+        //                 // Request finished. Do processing here.
+        //             }else{
+        //                 console.log("error")
+        //             }
+        //         }
+        //         xhr.send(formData);
+        //   }) -->

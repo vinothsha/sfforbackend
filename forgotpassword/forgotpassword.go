@@ -26,68 +26,65 @@ func PasswordResetOtpSender(w http.ResponseWriter, r *http.Request) {
 		var mailcheck PasswordReset
 		result := cassession.Session.Query("select usermail from signup where usermail=? allow filtering", PasswdResetData.Email)
 		result.Scan(&mailcheck.Email)
-		// fmt.Println(UserData.Email)
 		if PasswdResetData.Email == mailcheck.Email {
-			fmt.Fprintln(w, "user present")
-			var genOtp = signup.RandomGenerater()
 			var OtpAlreadyIn PasswordReset
 			result1 := cassession.Session.Query("select usermail from otp where usermail=? allow filtering", PasswdResetData.Email)
 			result1.Scan(&OtpAlreadyIn.Email)
 			if OtpAlreadyIn.Email == PasswdResetData.Email {
-				if err := cassession.Session.Query("update otp set otp=? where uid=?", genOtp, UniqueId).Exec(); err != nil {
-					fmt.Println("error while update the otp")
-				}
+
+				fmt.Println("OTP Already Sent to your Email Enter the Received OTP or with for 5 mintues")
 			} else {
-				if err := cassession.Session.Query("insert into otp(uid,usermail,otp)values(?,?,?)", UniqueId, PasswdResetData.Email, genOtp).Exec(); err != nil {
+				var genOtp = signup.RandomGenerater()
+				signup.SendOtpToEmail(PasswdResetData.Email, genOtp)
+
+				if err := cassession.Session.Query("insert into otp(uid,usermail,otp)values(?,?,?)USING TTL 300", UniqueId, PasswdResetData.Email, genOtp).Exec(); err != nil {
 					fmt.Println("error while insert otp to OTP Table")
 					fmt.Println(err)
 				}
+				json.NewEncoder(w).Encode(p)
 			}
-			signup.SendOtpToEmail(PasswdResetData.Email, genOtp)
+		} else {
+			w.WriteHeader(http.StatusNotAcceptable)
+			p := signup.Result{Status: false, Message: "invalid mobile or email"}
 			json.NewEncoder(w).Encode(p)
 		}
-		// else {
-		// 	p := signup.Result{Status: false, Message: "User already have a acoount"}
-		// 	json.NewEncoder(w).Encode(p)
 
-		// }
 	} else if signup.ValidateMobile(PasswdResetData.Mobile) && PasswdResetData.Mobile != "" {
 		p := signup.Result{Status: true, Message: "enter your OTP received by your Mobile"}
 		var mailcheck PasswordReset
 		result := cassession.Session.Query("select mobile from signup where mobile=? allow filtering", PasswdResetData.Mobile)
 		result.Scan(&mailcheck.Mobile)
 		if PasswdResetData.Mobile == mailcheck.Mobile {
-			var genOtp = signup.RandomGenerater()
+
 			var OtpAlreadyIn PasswordReset
 			result1 := cassession.Session.Query("select mobile from otp where mobile=? allow filtering", PasswdResetData.Mobile)
 			result1.Scan(&OtpAlreadyIn.Mobile)
 			result1.Scan(&OtpAlreadyIn.Email)
-			if OtpAlreadyIn.Email == PasswdResetData.Email {
-				if err := cassession.Session.Query("update otp set otp=? where uid=?", genOtp, UniqueId).Exec(); err != nil {
-					fmt.Println("error while update the otp")
-				}
+			if OtpAlreadyIn.Mobile == PasswdResetData.Mobile {
+
+				fmt.Println("OTP Already Sent to your Mobile Enter the Received OTP or with for 5 mintues")
 			} else {
-				if err := cassession.Session.Query("insert into otp(uid,mobile,countrycode,otp)values(?,?,?,?)", UniqueId, PasswdResetData.Mobile, PasswdResetData.CountryCode, genOtp).Exec(); err != nil {
+				var genOtp = signup.RandomGenerater()
+				signup.SendOtpToMobile(PasswdResetData.Mobile, genOtp)
+				if err := cassession.Session.Query("insert into otp(uid,mobile,countrycode,otp)values(?,?,?,?)USING TTL 300", UniqueId, PasswdResetData.Mobile, PasswdResetData.CountryCode, genOtp).Exec(); err != nil {
 					fmt.Println("error while insert otp to OTP Table")
 					fmt.Println(err)
 				}
+				json.NewEncoder(w).Encode(p)
 			}
-			signup.SendOtpToMobile(PasswdResetData.CountryCode+PasswdResetData.Mobile, genOtp)
+
+		} else {
+			w.WriteHeader(http.StatusNotAcceptable)
+			p := signup.Result{Status: false, Message: "invalid mobile or email"}
 			json.NewEncoder(w).Encode(p)
 		}
-		// else {
-		// 	p := signup.Result{Status: false, Message: "user already SignUp"}
-		// 	json.NewEncoder(w).Encode(p)
-		// }
+
 	} else {
+		w.WriteHeader(http.StatusNotAcceptable)
 		p := signup.Result{Status: false, Message: "invalid mobile or email"}
 		json.NewEncoder(w).Encode(p)
 	}
-	// time.Sleep(1 * time.Minute)
-	// if err := cassession.Session.Query("delete from otp where uid=?", UniqueId).Exec(); err != nil {
-	// 	fmt.Println("error while delete mobile otp")
-	// 	fmt.Println(err)
-	// }
+
 }
 func ResetPasswordOtpVerify(w http.ResponseWriter, r *http.Request) {
 	var AllDataFromUser OtpVerify
@@ -108,6 +105,7 @@ func ResetPasswordOtpVerify(w http.ResponseWriter, r *http.Request) {
 			}
 			json.NewEncoder(w).Encode(p)
 		} else {
+			w.WriteHeader(http.StatusNotAcceptable)
 			p := signup.Result{Status: false, Message: "OTP Not Verified Successfully"}
 			json.NewEncoder(w).Encode(p)
 			return
@@ -125,7 +123,8 @@ func ResetPasswordOtpVerify(w http.ResponseWriter, r *http.Request) {
 			}
 			json.NewEncoder(w).Encode(p)
 		} else {
-			p := signup.Result{Status: false, Message: "OTP Verified Successfully"}
+			w.WriteHeader(http.StatusNotAcceptable)
+			p := signup.Result{Status: true, Message: "OTP Verified Successfully"}
 			json.NewEncoder(w).Encode(p)
 		}
 	}
@@ -133,7 +132,6 @@ func ResetPasswordOtpVerify(w http.ResponseWriter, r *http.Request) {
 func EnterNewPassword(w http.ResponseWriter, r *http.Request) {
 	var PasswordFromUser NewPassword
 	reqData, err := ioutil.ReadAll(r.Body)
-	// Createddatetime := time.Now().Format("2006-01-02 15:04:05")
 	if err != nil {
 		fmt.Println("error while read password from user and function is EnterNewPassword")
 	}
@@ -145,7 +143,9 @@ func EnterNewPassword(w http.ResponseWriter, r *http.Request) {
 			var mailcheck NewPassword
 			result := cassession.Session.Query("select uid from signup where usermail=? allow filtering", PasswordFromUser.Email)
 			result.Scan(&mailcheck.UniqueId)
-			if mailcheck.UniqueId != uuid.Nil.String() {
+			result = cassession.Session.Query("select usermail from signup where usermail=? allow filtering", PasswordFromUser.Email)
+			result.Scan(&mailcheck.Email)
+			if mailcheck.Email == PasswordFromUser.Email {
 				if err := cassession.Session.Query("update signup set password=? where uid=?", hashedPass, mailcheck.UniqueId).Exec(); err != nil {
 					fmt.Println("error while insert password and usermail to DB table function is PasswordEnter_Signup")
 					fmt.Println(err)
@@ -153,35 +153,35 @@ func EnterNewPassword(w http.ResponseWriter, r *http.Request) {
 			}
 			json.NewEncoder(w).Encode(p)
 		} else {
+			w.WriteHeader(http.StatusNotAcceptable)
 			p := signup.Result{Status: false, Message: "password should greater than 8 character"}
 			json.NewEncoder(w).Encode(p)
 		}
 	} else if signup.ValidateMobile(PasswordFromUser.Mobile) {
 		if len(PasswordFromUser.Password) >= 8 {
-			p := signup.Result{Status: true, Message: "Password Reset Successfully"}
 			hashedPass := signup.HashPassword(PasswordFromUser.Password)
 			var mailcheck NewPassword
 			result := cassession.Session.Query("select uid from signup where mobile=? allow filtering", PasswordFromUser.Mobile)
 			result.Scan(&mailcheck.UniqueId)
+			result = cassession.Session.Query("select mobile from signup where mobile=? allow filtering", PasswordFromUser.Mobile)
+			result.Scan(&mailcheck.Mobile)
 			if PasswordFromUser.Mobile == mailcheck.Mobile {
+				p := signup.Result{Status: true, Message: "Password Reset Successfully"}
 				if err := cassession.Session.Query("update signup set password=? where uid=?", hashedPass, mailcheck.UniqueId).Exec(); err != nil {
 					fmt.Println("error while insert password and usermail to DB table function is EnterNewPassword ")
 					fmt.Println(err)
 				}
-
+				json.NewEncoder(w).Encode(p)
 			}
-			json.NewEncoder(w).Encode(p)
+
 		} else {
+			w.WriteHeader(http.StatusNotAcceptable)
 			p := signup.Result{Status: false, Message: "password greater than 8 character"}
 			json.NewEncoder(w).Encode(p)
 		}
 	} else {
-		p := signup.Result{Status: false, Message: "plz Reset Password agin"}
+		w.WriteHeader(http.StatusNotAcceptable)
+		p := signup.Result{Status: false, Message: "plz Reset Password again"}
 		json.NewEncoder(w).Encode(p)
 	}
 }
-
-// func HashPassword(password string) string {
-// 	bytes, _ := bcrypt.GenerateFromPassword([]byte(password), 14)
-// 	return string(bytes)
-// }
