@@ -28,17 +28,18 @@ type Claims struct {
 	Email string `json:"email"`
 	jwt.StandardClaims
 }
-type SigninEmailStruct struct {
-	SendStatus signup.Result `json:"sendstatus"`
-	UserId     gocql.UUID    `json:"userid"`
-	UserEmail  string        `json:"useremail"`
-}
-type SigninMobileStruct struct {
-	SendStatus  signup.Result `json:"sendstatus"`
-	UserId      gocql.UUID    `json:"userid"`
-	UserMobile  string        `json:"usermobile"`
-	CountryCode string        `json:"countrycode"`
-}
+
+// type SigninEmailStruct struct {
+// 	SendStatus signup.Result `json:"sendstatus"`
+// 	UserId     gocql.UUID    `json:"userid"`
+// 	UserEmail  string        `json:"useremail"`
+// }
+// type SigninMobileStruct struct {
+// 	SendStatus  signup.Result `json:"sendstatus"`
+// 	UserId      gocql.UUID    `json:"userid"`
+// 	UserMobile  string        `json:"usermobile"`
+// 	CountryCode string        `json:"countrycode"`
+// }
 
 func Signin(w http.ResponseWriter, r *http.Request) {
 	var user User
@@ -73,7 +74,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			var uid gocql.UUID
 			res1 := cassession.Session.Query("select uid from signup where usermail=? allow filtering", user.Email)
 			res1.Scan(&uid)
-			p := SigninEmailStruct{SendStatus: signup.Result{Status: true, Message: "Signin Successfully"}, UserId: uid, UserEmail: user.Email}
+			p := signup.Result{Status: true, Message: "Signin Successfully", UserId: uid, Usermail: user.Email}
 			json.NewEncoder(w).Encode(p)
 
 		} else {
@@ -111,7 +112,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			var ccode string
 			res1 = cassession.Session.Query("select countrycode from signup where mobile=? allow filtering", user.Mobile)
 			res1.Scan(&ccode)
-			p := SigninMobileStruct{SendStatus: signup.Result{Status: true, Message: "Signin Successfully"}, UserId: uid, UserMobile: user.Mobile, CountryCode: ccode}
+			p := signup.Result{Status: true, Message: "Signin Successfully", UserId: uid, UserMobile: user.Mobile, CountryCode: ccode}
 			json.NewEncoder(w).Encode(p)
 
 		} else {

@@ -22,7 +22,6 @@ type RecentlyWatched struct {
 
 func RecentlyWatchedVideos(w http.ResponseWriter, r *http.Request) {
 	var Watched RecentlyWatched
-
 	Watched.DateTime = time.Now().Format("2006-01-02 15:04:05")
 	req, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -47,9 +46,9 @@ func RecentlyWatchedVideos(w http.ResponseWriter, r *http.Request) {
 		}
 		p := signup.Result{Status: true, Message: "This video is add to recently watched list"}
 		json.NewEncoder(w).Encode(p)
-	} else {
-		// fmt.Println("owncontentwatch or already watched")
-		p := signup.Result{Status: false, Message: "own content watch or already watched"}
-		json.NewEncoder(w).Encode(p)
-	}
+	} //else {
+	// 	// fmt.Println("owncontentwatch or already watched")
+	// 	p := signup.Result{Status: false, Message: "own content watch or already watched"}
+	// 	json.NewEncoder(w).Encode(p)
+	// }
 }

@@ -1,5 +1,7 @@
 package signup
 
+import "github.com/gocql/gocql"
+
 type Otp struct {
 	Email       string `json:"email"`
 	CountryCode string `json:"countrycode"`
@@ -20,6 +22,10 @@ type Passwd struct {
 	Password    string `json:"password"`
 }
 type Result struct {
-	Status  bool   `json:"content"`
-	Message string `json:"message"`
+	Status      bool       `json:"content"`
+	Message     string     `json:"message"`
+	UserId      gocql.UUID `josn:"userid"`
+	Usermail    string     `json:"usrmail"`
+	UserMobile  string     `json:"usermobile"`
+	CountryCode string     `json:"countrycode"`
 }
