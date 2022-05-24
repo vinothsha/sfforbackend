@@ -34,18 +34,18 @@ func UploadVideos(w http.ResponseWriter, r *http.Request) {
 	}
 	VideoDetails.Language = r.Form.Get("language")
 	//Get Usermail/Mobile From the Browser Cokkie
-	tokenCookie, _ := r.Cookie("token")
-	a := string(tokenCookie.Value)
+	// tokenCookie, _ := r.Cookie("token")
+	// a := string(tokenCookie.Value)
 
-	base64Text := make([]byte, base64.URLEncoding.DecodedLen(len(strings.Split(a, ".")[1])))
-	base64.StdEncoding.Decode(base64Text, []byte(strings.Split(a, ".")[1]))
-	str := string(base64Text)
-	findcolon := strings.Index(str, ":")
-	findcomma := strings.Index(str, ",")
-	VideoDetails.Mail = str[findcolon+2 : findcomma-1]
+	// base64Text := make([]byte, base64.URLEncoding.DecodedLen(len(strings.Split(a, ".")[1])))
+	// base64.StdEncoding.Decode(base64Text, []byte(strings.Split(a, ".")[1]))
+	// str := string(base64Text)
+	// findcolon := strings.Index(str, ":")
+	// findcomma := strings.Index(str, ",")
+	// VideoDetails.Mail = str[findcolon+2 : findcomma-1]
 	//thumnail start
 	// Read the entire file into a byte slice
-	// VideoDetails.Mail = "jk@gmail.com"
+	VideoDetails.Mail = "jk@gmail.com"
 	file1, handler1, err := r.FormFile("myimage")
 
 	if err != nil {
