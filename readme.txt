@@ -111,7 +111,7 @@ FORGOT PASSWORD---All Methods Are "POST"
   		 "mobile":"+919655373273",
   		 "countrycode":"+91",
   		 "password":"123456789"
-	    }
+	    }  
 
 UPLOAD VIDEOS BY USER
       -->http://ip:8080/upload
@@ -129,3 +129,39 @@ UPLOAD VIDEOS BY USER
      | myimage       |  thumnail image                                       |
      |-----------------------------------------------------------------------|
    
+"/check" ---Methods("GET")
+	"/sendotp" ---Methods("POST")
+	"/verifyandtopass"--- Methods("POST")
+	"/signup", ---Methods("POST")
+	//FORGOT PASSWORD
+	"/sendotpforgotpassword"----Methods("POST")
+	"/otpverifyforgotpassword"----Methods("POST")
+	"/newpassword"---Methods("POST")
+	//SIGNIN
+	"/signin" ---Methods("POST")
+	//SIGNOUT
+	"/signout" ---Methods("POST")
+	//GET LANGUAGE AND GENRES
+	"/langen"---Methods("GET")
+	//AUTHORIZED
+	//HOME
+	"/home"---Methods("GET")
+	//UPLOAD
+	"/upload"---Methods("POST")
+	"/refresh"---Methods("GET")
+	"/videotohomepage"---Methods("GET")
+	//UserProfile Details
+	"/profile"
+	//all liked videos
+	"/likes"---Methods("POST")
+	//recently watched by user
+	"/recentlywatchedbyuser"---Methods("POST")
+	//get the recently watched videos
+	"/getrecent"---Methods("GET")
+	//get the user profile details
+	"/getprofile/{id}"---Methods("GET")
+	//get the particular your uploaded videos
+	"/yourvideos/{id}"----Methods("GET")
+	//add views to videos
+	"/views/{vid}"--POST
+

@@ -74,12 +74,16 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			var uid gocql.UUID
 			res1 := cassession.Session.Query("select uid from signup where usermail=? allow filtering", user.Email)
 			res1.Scan(&uid)
-			p := signup.Result{Status: true, Message: "Signin Successfully", UserId: uid, Usermail: user.Email}
+			var p []signup.Result
+
+			p =append(p, signup.Result{Status: true, Message: "Signin Successfully", UserId: uid, Usermail: user.Email})
 			json.NewEncoder(w).Encode(p)
 
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)
-			p := signup.Result{Status: false, Message: "invalid mobile/email or password"}
+			var p []signup.Result
+
+			p = append(p,signup.Result{Status: false, Message: "invalid mobile/email or password"})
 			json.NewEncoder(w).Encode(p)
 		}
 	} else if signup.ValidateMobile(user.Mobile) {
@@ -112,12 +116,14 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			var ccode string
 			res1 = cassession.Session.Query("select countrycode from signup where mobile=? allow filtering", user.Mobile)
 			res1.Scan(&ccode)
-			p := signup.Result{Status: true, Message: "Signin Successfully", UserId: uid, UserMobile: user.Mobile, CountryCode: ccode}
+			var p []signup.Result
+			p = append(p,signup.Result{Status: true, Message: "Signin Successfully", UserId: uid, UserMobile: user.Mobile, CountryCode: ccode})
 			json.NewEncoder(w).Encode(p)
 
 		} else {
 			w.WriteHeader(http.StatusNotAcceptable)
-			p := signup.Result{Status: false, Message: "invalid mobile/email or password"}
+			var p []signup.Result
+			p = append(p,signup.Result{Status: false, Message: "invalid mobile/email or password"})
 			json.NewEncoder(w).Encode(p)
 
 		}
