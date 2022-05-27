@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/smtp"
 	"net/url"
 	"regexp"
 	"strings"
@@ -14,8 +15,6 @@ import (
 	"github.com/google/uuid"
 
 	"sha/cassession"
-
-	gomail "gopkg.in/mail.v2"
 )
 
 func OtpSenderInputverifier(w http.ResponseWriter, r *http.Request) {
@@ -107,18 +106,43 @@ func RandomGenerater() string {
 
 }
 func SendOtpToEmail(email string, num string) {
-	abc := gomail.NewMessage()
-	abc.SetHeader("From", "kvinothsha@gmail.com")
-	abc.SetHeader("To", email)
-	abc.SetHeader("Subject", "Test Email subject abc")
-	abc.SetBody("text", num)
-	a := gomail.NewDialer("smtp.gmail.com", 587, "kvinothsha@gmail.com", "Vinoth97$$@@")
+	// abc := gomail.NewMessage()
+	// abc.SetHeader("From", "vinothkkvs@gmail.com")
+	// abc.SetHeader("To", email)
+	// abc.SetHeader("Subject", "Test Email subject abc")
+	// abc.SetBody("text", num)
+	// a := gomail.NewDialer("smtp.gmail.com", 587, "vinothkkvs@gmail.com", "Vinothsha97$$")
 
-	if err := a.DialAndSend(abc); err != nil {
-		fmt.Println("error at email send for invalid email")
-		fmt.Println(err)
-		panic(err)
+	// if err := a.DialAndSend(abc); err != nil {
+	// 	fmt.Println("error at email send for invalid email")
+	// 	fmt.Println(err)
+	// 	panic(err)
+	// }
+	from := "kvinothsha@gmail.com"
+	password := "SfBeta1.0"
+
+	// Receiver email address.
+	to := []string{
+		email,
 	}
+
+	// smtp server configuration.
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	// Message.
+	message := []byte("This is a test email message " + num)
+
+	// Authentication.
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	// Sending email.
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Email Sent Successfully!")
 }
 func SendOtpToMobile(mob string, num string) {
 	accountSid := "ACac40d86f1e4383335d6e208ffe96c130"

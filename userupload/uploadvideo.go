@@ -45,7 +45,7 @@ func UploadVideos(w http.ResponseWriter, r *http.Request) {
 	// VideoDetails.Mail = str[findcolon+2 : findcomma-1]
 	//thumnail start
 	// Read the entire file into a byte slice
-	VideoDetails.Mail = "vinothkkvs@gmail.com"
+	VideoDetails.Mail = "vijay9655pl@gmail.com"
 	file1, handler1, err := r.FormFile("myimage")
 
 	if err != nil {
