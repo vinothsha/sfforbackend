@@ -90,6 +90,7 @@ func PasswordEnterSignup(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("error while insert mobile signin unserprofiledetails")
 			}
 			p := Result{Status: true, Message: "Account Created  Successfully Using Mobile Number"}
+			fmt.Println("this is a country code", PasswordFromUser.CountryCode, " this is a mobile ", PasswordFromUser.Mobile)
 			json.NewEncoder(w).Encode(p)
 		} else {
 			p := Result{Status: false, Message: "password greater than 8 character"}
