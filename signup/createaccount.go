@@ -24,7 +24,7 @@ func CreateAccountOtpVerify(w http.ResponseWriter, r *http.Request) {
 		var mailcheck CreateAccount
 		result := cassession.Session.Query("select otp from otp where usermail=? allow filtering", AllDataFromUser.Email)
 		result.Scan(&mailcheck.OtpNumber)
-		if AllDataFromUser.OtpNumber == mailcheck.OtpNumber {
+		if AllDataFromUser.OtpNumber == mailcheck.OtpNumber && len(AllDataFromUser.OtpNumber) == 6 && AllDataFromUser.OtpNumber != "" {
 			p := Result{Status: true, Message: "OTP Verified Successfully"}
 			json.NewEncoder(w).Encode(p)
 		} else {
@@ -36,7 +36,7 @@ func CreateAccountOtpVerify(w http.ResponseWriter, r *http.Request) {
 		var mailcheck CreateAccount
 		result := cassession.Session.Query("select otp from otp where mobile=? allow filtering", AllDataFromUser.Mobile)
 		result.Scan(&mailcheck.OtpNumber)
-		if AllDataFromUser.OtpNumber == mailcheck.OtpNumber {
+		if AllDataFromUser.OtpNumber == mailcheck.OtpNumber && len(AllDataFromUser.OtpNumber) == 6 && AllDataFromUser.OtpNumber != "" {
 			p := Result{Status: true, Message: "OTP Verified Successfully"}
 			json.NewEncoder(w).Encode(p)
 		} else {
