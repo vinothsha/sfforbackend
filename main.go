@@ -58,9 +58,9 @@ func main() {
 	//get the particular your uploaded videos
 	r.HandleFunc("/yourvideos/{id}", yourvideos.GiveYourVideosToFront).Methods("GET")
 	//add views to videos
-	r.HandleFunc("/views/{vid}", viewspervideo.ViewsPerVideo)
+	r.HandleFunc("/views/{vid}", viewspervideo.ViewsPerVideo).Methods("POST")
 	//countrystate to front end
-	r.HandleFunc("/countrystate", countrystate.CountryStateToFront)
+	r.HandleFunc("/countrystate", countrystate.CountryStateToFront).Methods("GET")
 	//CORS
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
