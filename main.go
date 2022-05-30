@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"sha/countrystate"
 	"sha/forgotpassword"
 	"sha/langgenres"
 	"sha/recentlywatched"
@@ -58,6 +59,8 @@ func main() {
 	r.HandleFunc("/yourvideos/{id}", yourvideos.GiveYourVideosToFront).Methods("GET")
 	//add views to videos
 	r.HandleFunc("/views/{vid}", viewspervideo.ViewsPerVideo)
+	//countrystate to front end
+	r.HandleFunc("/countrystate", countrystate.CountryStateToFront)
 	//CORS
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
