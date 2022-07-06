@@ -44,12 +44,7 @@ func UserProfileDetails(w http.ResponseWriter, r *http.Request) {
 		GetEmailUid := cassession.Session.Query("select profileuid from userprofiledetails where email=? allow filtering", EmailOrMobile)
 		GetEmailUid.Scan(&TakeProfileDetails.ProfileUid)
 		fmt.Println(TakeProfileDetails.ProfileUid)
-		// var GetMobileDb string
-		// getemail := cassession.Session.Query("select mobile from userprofiledetails where mobile=? allow filtering", TakeProfileDetails.Mobile)
-		// getemail.Scan(&GetMobileDb)
-		// fmt.Println(GetMobileDb)
-		// fmt.Println(TakeProfileDetails.Mobile)
-		// if GetMobileDb != TakeProfileDetails.Mobile {
+
 		if err = cassession.Session.Query("update userprofiledetails set firstname=?,lastname=?,dateofbirth=?,gender=?,mobile=?,profileimage=?,countrycode=? where profileuid=?",
 			TakeProfileDetails.FirstName, TakeProfileDetails.LastName, TakeProfileDetails.DateOfBirth, TakeProfileDetails.Gender,
 			TakeProfileDetails.Mobile, TakeProfileDetails.Profileimage, TakeProfileDetails.CountryCode, TakeProfileDetails.ProfileUid).Exec(); err != nil {
@@ -59,13 +54,7 @@ func UserProfileDetails(w http.ResponseWriter, r *http.Request) {
 		p := s.ErrorResult{Status: true, Message: "changed mobile or other details"}
 		json.NewEncoder(w).Encode(p)
 		fmt.Println("changed")
-		// else {
-		// 	p := s.ErrorResult{Status: false, Message: "changed Email and other details"}
-		// 	json.NewEncoder(w).Encode(p)
 
-		// }
-
-		// GetProfileDetails.Mobile = "null"
 	} else if e.ValidateMobile(EmailOrMobile) {
 		GetEmailUid := cassession.Session.Query("select profileuid from userprofiledetails where mobile=? allow filtering", EmailOrMobile)
 		GetEmailUid.Scan(&TakeProfileDetails.ProfileUid)
@@ -75,18 +64,14 @@ func UserProfileDetails(w http.ResponseWriter, r *http.Request) {
 		getemail.Scan(&GetEmailDb)
 		fmt.Println(GetEmailDb)
 		fmt.Println(TakeProfileDetails.Email)
-		// if GetEmailDb != TakeProfileDetails.Email {
+
 		if err = cassession.Session.Query("update userprofiledetails set firstname=?,lastname=?,dateofbirth=?,gender=?,profileimage=?,email=? where profileuid=?",
 			TakeProfileDetails.FirstName, TakeProfileDetails.LastName, TakeProfileDetails.DateOfBirth, TakeProfileDetails.Gender, TakeProfileDetails.Profileimage,
 			TakeProfileDetails.Email, TakeProfileDetails.ProfileUid).Exec(); err != nil {
 			fmt.Println("error while update profile details")
 			fmt.Println(err)
 		}
-		// else {
-		// 	p := s.ErrorResult{Status: false, Message: "changed "}
-		// 	json.NewEncoder(w).Encode(p)
-		// 	fmt.Println("changed")
-		// }
+
 		p := s.ErrorResult{Status: true, Message: "changed email or other details"}
 		json.NewEncoder(w).Encode(p)
 		fmt.Println("changed")
