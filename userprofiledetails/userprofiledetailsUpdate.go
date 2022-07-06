@@ -55,11 +55,15 @@ func UserProfileDetails(w http.ResponseWriter, r *http.Request) {
 			TakeProfileDetails.Mobile, TakeProfileDetails.Profileimage, TakeProfileDetails.CountryCode, TakeProfileDetails.ProfileUid).Exec(); err != nil {
 			fmt.Println("error while update profile details")
 			fmt.Println(err)
-		} else {
-			p := s.ErrorResult{Status: false, Message: "changed Email and other details"}
-			json.NewEncoder(w).Encode(p)
-
 		}
+		p := s.ErrorResult{Status: true, Message: "changed mobile or other details"}
+		json.NewEncoder(w).Encode(p)
+		fmt.Println("changed")
+		// else {
+		// 	p := s.ErrorResult{Status: false, Message: "changed Email and other details"}
+		// 	json.NewEncoder(w).Encode(p)
+
+		// }
 
 		// GetProfileDetails.Mobile = "null"
 	} else if e.ValidateMobile(EmailOrMobile) {
@@ -77,11 +81,18 @@ func UserProfileDetails(w http.ResponseWriter, r *http.Request) {
 			TakeProfileDetails.Email, TakeProfileDetails.ProfileUid).Exec(); err != nil {
 			fmt.Println("error while update profile details")
 			fmt.Println(err)
-		} else {
-			p := s.ErrorResult{Status: false, Message: "changed "}
-			json.NewEncoder(w).Encode(p)
-			fmt.Println("changed")
 		}
+		// else {
+		// 	p := s.ErrorResult{Status: false, Message: "changed "}
+		// 	json.NewEncoder(w).Encode(p)
+		// 	fmt.Println("changed")
+		// }
+		p := s.ErrorResult{Status: true, Message: "changed email or other details"}
+		json.NewEncoder(w).Encode(p)
+		fmt.Println("changed")
+	} else {
+		p := s.ErrorResult{Status: false, Message: "error in data "}
+		json.NewEncoder(w).Encode(p)
 	}
 }
 
