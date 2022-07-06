@@ -6,7 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sha/cassession"
+	s "sha/commonstruct"
 	"time"
+
+	e "sha/commonservices/commonfunctions"
 
 	"github.com/gocql/gocql"
 	"github.com/google/uuid"
@@ -14,40 +17,40 @@ import (
 )
 
 func CreateAccountOtpVerify(w http.ResponseWriter, r *http.Request) {
-	var AllDataFromUser CreateAccount
+	var AllDataFromUser s.CreateAccount
 	reqData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println("error while data read during Create_Account")
 	}
 	json.Unmarshal(reqData, &AllDataFromUser)
-	if ValidateEmail(AllDataFromUser.Email) && AllDataFromUser.Email != "" {
-		var mailcheck CreateAccount
+	if e.ValidateEmail(AllDataFromUser.Email) && AllDataFromUser.Email != "" {
+		var mailcheck s.CreateAccount
 		result := cassession.Session.Query("select otp from otp where usermail=? allow filtering", AllDataFromUser.Email)
 		result.Scan(&mailcheck.OtpNumber)
 		if AllDataFromUser.OtpNumber == mailcheck.OtpNumber {
-			p := Result{Status: true, Message: "OTP Verified Successfully"}
+			p := s.ErrorResult{Status: true, Message: "OTP Verified Successfully"}
 			json.NewEncoder(w).Encode(p)
 		} else {
-			p := Result{Status: false, Message: "OTP Not Verified Successfully"}
+			p := s.ErrorResult{Status: false, Message: "OTP Not Verified Successfully"}
 			json.NewEncoder(w).Encode(p)
 			return
 		}
-	} else if ValidateMobile(AllDataFromUser.Mobile) && AllDataFromUser.Mobile != "" {
-		var mailcheck CreateAccount
+	} else if e.ValidateMobile(AllDataFromUser.Mobile) && AllDataFromUser.Mobile != "" {
+		var mailcheck s.CreateAccount
 		result := cassession.Session.Query("select otp from otp where mobile=? allow filtering", AllDataFromUser.Mobile)
 		result.Scan(&mailcheck.OtpNumber)
 		if AllDataFromUser.OtpNumber == mailcheck.OtpNumber {
-			p := Result{Status: true, Message: "OTP Verified Successfully"}
+			p := s.ErrorResult{Status: true, Message: "OTP Verified Successfully"}
 			json.NewEncoder(w).Encode(p)
 		} else {
-			p := Result{Status: false, Message: "OTP Not Verified Successfully"}
+			p := s.ErrorResult{Status: false, Message: "OTP Not Verified Successfully"}
 			json.NewEncoder(w).Encode(p)
 		}
 	}
 }
 
 func PasswordEnterSignup(w http.ResponseWriter, r *http.Request) {
-	var PasswordFromUser Passwd
+	var PasswordFromUser s.Passwd
 	reqData, err := ioutil.ReadAll(r.Body)
 	Createddatetime := time.Now().Format("2006-01-02 15:04:05")
 	if err != nil {
@@ -55,7 +58,7 @@ func PasswordEnterSignup(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	json.Unmarshal(reqData, &PasswordFromUser)
-	if ValidateEmail(PasswordFromUser.Email) && PasswordFromUser.Email != "" {
+	if e.ValidateEmail(PasswordFromUser.Email) && PasswordFromUser.Email != "" {
 		if len(PasswordFromUser.Password) >= 8 {
 
 			hashedPass := HashPassword(PasswordFromUser.Password)
@@ -69,13 +72,13 @@ func PasswordEnterSignup(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(err)
 				fmt.Println("error while insert email signin unserprofiledetails")
 			}
-			p := Result{Status: true, Message: "Account Created  Successfully Using Email Number"}
+			p := s.ResultEmail{Status: true, Message: "Account Created  Successfully Using Email Number", UserId: UserUid.String()}
 			json.NewEncoder(w).Encode(p)
 		} else {
-			p := Result{Status: false, Message: "password should greater than 8 character"}
+			p := s.ErrorResult{Status: false, Message: "password should greater than 8 character"}
 			json.NewEncoder(w).Encode(p)
 		}
-	} else if ValidateMobile(PasswordFromUser.Mobile) && PasswordFromUser.Mobile != "" {
+	} else if e.ValidateMobile(PasswordFromUser.Mobile) && PasswordFromUser.Mobile != "" {
 		if len(PasswordFromUser.Password) >= 8 {
 
 			hashedPass := HashPassword(PasswordFromUser.Password)
@@ -89,15 +92,15 @@ func PasswordEnterSignup(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(err)
 				fmt.Println("error while insert mobile signin unserprofiledetails")
 			}
-			p := Result{Status: true, Message: "Account Created  Successfully Using Mobile Number"}
+			p := s.ResultMobile{Status: true, Message: "Account Created  Successfully Using Mobile Number", UserId: UserUid.String()}
 			fmt.Println("this is a country code", PasswordFromUser.CountryCode, " this is a mobile ", PasswordFromUser.Mobile)
 			json.NewEncoder(w).Encode(p)
 		} else {
-			p := Result{Status: false, Message: "password greater than 8 character"}
+			p := s.ErrorResult{Status: false, Message: "password greater than 8 character"}
 			json.NewEncoder(w).Encode(p)
 		}
 	} else {
-		p := Result{Status: false, Message: "plz signup agin"}
+		p := s.ErrorResult{Status: false, Message: "plz signup agin"}
 		json.NewEncoder(w).Encode(p)
 	}
 }

@@ -2,6 +2,7 @@ package cassession
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/gocql/gocql"
 )
@@ -13,7 +14,7 @@ func init() {
 	cluster.Consistency = gocql.LocalOne
 	Session, err = cluster.CreateSession()
 	if err != nil {
-		fmt.Println("error while connect to cassandra")
+		log.Fatalln("error while connect to cassandra")
 	} else {
 		fmt.Println("cassandra is connected")
 	}

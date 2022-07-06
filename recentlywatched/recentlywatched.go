@@ -6,22 +6,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sha/cassession"
-	"sha/signup"
+	s "sha/commonstruct"
 	"time"
 
 	"github.com/gocql/gocql"
 	"github.com/google/uuid"
 )
 
-type RecentlyWatched struct {
-	RecentlyWatchedUid gocql.UUID `json:"recentlywatcheduid"`
-	UserId             gocql.UUID `json:"userid"`
-	VideoId            gocql.UUID `json:"videoid"`
-	DateTime           string     `json:"datetime"`
-}
-
 func RecentlyWatchedVideos(w http.ResponseWriter, r *http.Request) {
-	var Watched RecentlyWatched
+	var Watched s.RecentlyWatched
 	Watched.DateTime = time.Now().Format("2006-01-02 15:04:05")
 	req, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -44,11 +37,11 @@ func RecentlyWatchedVideos(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("error while insert data into recentlywatched table")
 			fmt.Println(err)
 		}
-		p := signup.Result{Status: true, Message: "This video is add to recently watched list"}
+		p := s.ErrorResult{Status: true, Message: "This video is add to recently watched list"}
 		json.NewEncoder(w).Encode(p)
 	} //else {
 	// 	// fmt.Println("owncontentwatch or already watched")
 	// 	p := signup.Result{Status: false, Message: "own content watch or already watched"}
 	// 	json.NewEncoder(w).Encode(p)
-	// }
+	// fmt.Println
 }

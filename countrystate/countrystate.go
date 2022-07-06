@@ -3,27 +3,64 @@ package countrystate
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sha/cassession"
 )
 
-type CountryState struct {
+type Country struct {
 	CountryName string   `json:"countryname"`
-	States      []string `json:"states"`
+	Statesname  []string `json:"statesname"`
 }
 
-func CountryStateToFront(w http.ResponseWriter, r *http.Request) {
-	var allCountry []CountryState
+type States struct {
+	Statesname []string `json:"states"`
+}
+
+func CountryToFront(w http.ResponseWriter, r *http.Request) {
+	var allCountry []Country
 	iter := cassession.Session.Query("select * from countrystate").Iter()
 	m := map[string]interface{}{}
 	for iter.MapScan(m) {
 		fmt.Println("called")
-		allCountry = append(allCountry, CountryState{
+		allCountry = append(allCountry, Country{
 			CountryName: m["countryname"].(string),
-			States:      m["states"].([]string),
 		})
 		m = map[string]interface{}{}
 	}
 	Conv, _ := json.MarshalIndent(allCountry, "", "  ")
+	fmt.Fprintf(w, "%s", string(Conv))
+
+}
+func StatesToFront(w http.ResponseWriter, r *http.Request) {
+	var allStates []States
+	iter := cassession.Session.Query("select * from countrystate").Iter()
+	m := map[string]interface{}{}
+	for iter.MapScan(m) {
+		fmt.Println("called")
+		allStates = append(allStates, States{
+			Statesname: m["states"].([]string),
+		})
+		m = map[string]interface{}{}
+	}
+	Conv, _ := json.MarshalIndent(allStates, "", " ")
+	fmt.Fprintf(w, "%s", string(Conv))
+}
+
+func Selectcountrystate(w http.ResponseWriter, r *http.Request) {
+	var allStates []States
+	req,_:=ioutil.ReadAll(r.Body)
+	var country Country
+	json.Unmarshal(req,&country)
+	iter := cassession.Session.Query("select * from countrystate where countryname=? allow filtering",country.CountryName).Iter()
+	m := map[string]interface{}{}
+	for iter.MapScan(m) {
+		fmt.Println("called")
+		allStates = append(allStates, States{
+			Statesname: m["states"].([]string),
+		})
+		m = map[string]interface{}{}
+	}
+	Conv, _ := json.MarshalIndent(allStates, "", " ")
 	fmt.Fprintf(w, "%s", string(Conv))
 }

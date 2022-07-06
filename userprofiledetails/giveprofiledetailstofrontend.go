@@ -27,8 +27,6 @@ func GiveprofileDetailsToFrontEnd(w http.ResponseWriter, r *http.Request) {
 			FirstName:   m["firstname"].(string),
 			LastName:    m["lastname"].(string),
 			Gender:      m["gender"].(string),
-			Country:     m["country"].(string),
-			State:       m["state"].(string),
 		})
 		m = map[string]interface{}{}
 	}

@@ -1,0 +1,7 @@
+/home/vsprasanth/IdeaProjects/ktable/src/main/java/kafka_table/TableApp.java
+/home/vsprasanth/IdeaProjects/ktable/src/main/java/kafka_table/AppConfigs.java
+/home/vsprasanth/IdeaProjects/ktable/src/main/java/kafka_table/QueryServer.java
+/home/vsprasanth/IdeaProjects/ktable/src/main/java/kafka_table/AppSerdes/JsonDeserializer.java
+/home/vsprasanth/IdeaProjects/ktable/src/main/java/kafka_table/AppSerdes/AppSerdes.java
+/home/vsprasanth/IdeaProjects/ktable/src/main/java/kafka_table/types/id.java
+/home/vsprasanth/IdeaProjects/ktable/src/main/java/kafka_table/AppSerdes/JsonSerializer.java

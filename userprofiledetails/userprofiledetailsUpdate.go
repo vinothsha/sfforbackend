@@ -1,14 +1,13 @@
 package userprofiledetails
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"sha/cassession"
-	"sha/signup"
-	"strings"
+	e "sha/commonservices/commonfunctions"
+	s "sha/commonstruct"
 )
 
 func UserProfileDetails(w http.ResponseWriter, r *http.Request) {
@@ -21,40 +20,49 @@ func UserProfileDetails(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(reqdata, &TakeProfileDetails)
 	// fmt.Println(GetProfileDetails)
 	// Get Usermail/Mobile From the Browser Cokkie
-	tokenCookie, _ := r.Cookie("token")
-	a := string(tokenCookie.Value)
+	// tokenCookie, _ := r.Cookie("token")
+	// a := string(tokenCookie.Value)
 
-	base64Text := make([]byte, base64.URLEncoding.DecodedLen(len(strings.Split(a, ".")[1])))
-	base64.StdEncoding.Decode(base64Text, []byte(strings.Split(a, ".")[1]))
-	str := string(base64Text)
-	findcolon := strings.Index(str, ":")
-	findcomma := strings.Index(str, ",")
-	EmailOrMobile := str[findcolon+2 : findcomma-1]
-	// EmailOrMobile := "+919655373273"
-	if signup.ValidateEmail(EmailOrMobile) {
+	// base64Text := make([]byte, base64.URLEncoding.DecodedLen(len(strings.Split(a, ".")[1])))
+	// base64.StdEncoding.Decode(base64Text, []byte(strings.Split(a, ".")[1]))
+	// str := string(base64Text)
+	// findcolon := strings.Index(str, ":")
+	// findcomma := strings.Index(str, ",")
+	// EmailOrMobile := str[findcolon+2 : findcomma-1]
+	var email string
+	var mobile string
+	var EmailOrMobile string
+	if err := cassession.Session.Query("select usermail,mobile from signup where uid=?", TakeProfileDetails.Useruid).Scan(&email, &mobile); err != nil {
+		fmt.Println("error while get email/mobile in userprofile_function")
+	}
+	if email != "" {
+		EmailOrMobile = email
+	} else {
+		EmailOrMobile = mobile
+	}
+	if e.ValidateEmail(EmailOrMobile) {
 		GetEmailUid := cassession.Session.Query("select profileuid from userprofiledetails where email=? allow filtering", EmailOrMobile)
 		GetEmailUid.Scan(&TakeProfileDetails.ProfileUid)
 		fmt.Println(TakeProfileDetails.ProfileUid)
-		var GetMobileDb string
-		getemail := cassession.Session.Query("select mobile from userprofiledetails where mobile=? allow filtering", TakeProfileDetails.Mobile)
-		getemail.Scan(&GetMobileDb)
-		fmt.Println(GetMobileDb)
-		fmt.Println(TakeProfileDetails.Mobile)
-		if GetMobileDb != TakeProfileDetails.Mobile {
-			if err = cassession.Session.Query("update userprofiledetails set firstname=?,lastname=?,dateofbirth=?,gender=?,country=?,state=?,mobile=?,countrycode=? where profileuid=?",
-				TakeProfileDetails.FirstName, TakeProfileDetails.LastName, TakeProfileDetails.DateOfBirth, TakeProfileDetails.Gender, TakeProfileDetails.Country,
-				TakeProfileDetails.State, TakeProfileDetails.Mobile, TakeProfileDetails.CountryCode, TakeProfileDetails.ProfileUid).Exec(); err != nil {
-				fmt.Println("error while update profile details")
-				fmt.Println(err)
-			}
+		// var GetMobileDb string
+		// getemail := cassession.Session.Query("select mobile from userprofiledetails where mobile=? allow filtering", TakeProfileDetails.Mobile)
+		// getemail.Scan(&GetMobileDb)
+		// fmt.Println(GetMobileDb)
+		// fmt.Println(TakeProfileDetails.Mobile)
+		// if GetMobileDb != TakeProfileDetails.Mobile {
+		if err = cassession.Session.Query("update userprofiledetails set firstname=?,lastname=?,dateofbirth=?,gender=?,mobile=?,profileimage=?,countrycode=? where profileuid=?",
+			TakeProfileDetails.FirstName, TakeProfileDetails.LastName, TakeProfileDetails.DateOfBirth, TakeProfileDetails.Gender,
+			TakeProfileDetails.Mobile, TakeProfileDetails.Profileimage, TakeProfileDetails.CountryCode, TakeProfileDetails.ProfileUid).Exec(); err != nil {
+			fmt.Println("error while update profile details")
+			fmt.Println(err)
 		} else {
-			p := signup.Result{Status: false, Message: "mobile already used by another user"}
+			p := s.ErrorResult{Status: false, Message: "changed Email and other details"}
 			json.NewEncoder(w).Encode(p)
-			fmt.Println("mobile already used by another account")
+
 		}
 
 		// GetProfileDetails.Mobile = "null"
-	} else if signup.ValidateMobile(EmailOrMobile) {
+	} else if e.ValidateMobile(EmailOrMobile) {
 		GetEmailUid := cassession.Session.Query("select profileuid from userprofiledetails where mobile=? allow filtering", EmailOrMobile)
 		GetEmailUid.Scan(&TakeProfileDetails.ProfileUid)
 		fmt.Println(TakeProfileDetails.ProfileUid)
@@ -63,17 +71,16 @@ func UserProfileDetails(w http.ResponseWriter, r *http.Request) {
 		getemail.Scan(&GetEmailDb)
 		fmt.Println(GetEmailDb)
 		fmt.Println(TakeProfileDetails.Email)
-		if GetEmailDb != TakeProfileDetails.Email {
-			if err = cassession.Session.Query("update userprofiledetails set firstname=?,lastname=?,dateofbirth=?,gender=?,country=?,state=?,email=? where profileuid=?",
-				TakeProfileDetails.FirstName, TakeProfileDetails.LastName, TakeProfileDetails.DateOfBirth, TakeProfileDetails.Gender, TakeProfileDetails.Country,
-				TakeProfileDetails.State, TakeProfileDetails.Email, TakeProfileDetails.ProfileUid).Exec(); err != nil {
-				fmt.Println("error while update profile details")
-				fmt.Println(err)
-			}
+		// if GetEmailDb != TakeProfileDetails.Email {
+		if err = cassession.Session.Query("update userprofiledetails set firstname=?,lastname=?,dateofbirth=?,gender=?,profileimage=?,email=? where profileuid=?",
+			TakeProfileDetails.FirstName, TakeProfileDetails.LastName, TakeProfileDetails.DateOfBirth, TakeProfileDetails.Gender, TakeProfileDetails.Profileimage,
+			TakeProfileDetails.Email, TakeProfileDetails.ProfileUid).Exec(); err != nil {
+			fmt.Println("error while update profile details")
+			fmt.Println(err)
 		} else {
-			p := signup.Result{Status: false, Message: "memail already used in another user"}
+			p := s.ErrorResult{Status: false, Message: "changed "}
 			json.NewEncoder(w).Encode(p)
-			fmt.Println("email already used in another account")
+			fmt.Println("changed")
 		}
 	}
 }

@@ -1,4 +1,4 @@
-run_script:
+rundb:
 	cd script && go run script.go
-run_server:
+runserver:
 	go run main.go

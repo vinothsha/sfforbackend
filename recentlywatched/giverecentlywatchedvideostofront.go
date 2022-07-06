@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"sha/cassession"
 
+	s "sha/commonstruct"
+
 	"github.com/gocql/gocql"
 )
 
@@ -27,13 +29,14 @@ type GetRecentWatch struct {
 	Createddatetime string   `json:"createddatetime"`
 	// Lastupdatedatetime string `json:"lastupdatedatetime"`
 }
-type GetUserId struct {
-	Userid  gocql.UUID `json:"userid"`
-	VideoId gocql.UUID `json:"videoid"`
-}
+
+// type GetUserId struct {
+// 	Userid  gocql.UUID `json:"userid"`
+// 	VideoId gocql.UUID `json:"videoid"`
+// }
 
 func GiveRecentlyWatchedVideosToFront(w http.ResponseWriter, r *http.Request) {
-	var getid GetUserId
+	var getid s.GetUserId
 	req, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println("error while userid for GiveRecentlyWatchedVideosToFront")

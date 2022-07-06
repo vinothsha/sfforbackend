@@ -3,11 +3,11 @@ package signinout
 import (
 	"encoding/json"
 	"net/http"
-	"sha/signup"
+	s "sha/commonstruct"
 )
 
 func Signout(w http.ResponseWriter, r *http.Request) {
-	p := signup.Result{Status: true, Message: "Signout Successfully"}
+	p := s.ErrorResult{Status: true, Message: "Signout Successfully"}
 	c := http.Cookie{
 		Name: "token",
 		// MaxAge: -1}

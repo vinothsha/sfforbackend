@@ -1,0 +1,8 @@
+kafka_table/types/id.class
+kafka_table/AppConfigs.class
+kafka_table/AppSerdes/JsonSerializer.class
+kafka_table/TableApp.class
+kafka_table/QueryServer.class
+kafka_table/AppSerdes/AppSerdes.class
+kafka_table/AppSerdes/JsonDeserializer.class
+kafka_table/AppSerdes/AppSerdes$idSerde.class
