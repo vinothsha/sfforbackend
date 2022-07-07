@@ -82,4 +82,6 @@ type GetVideo struct {
 	LikesCount      string  `json:"likescount"`
 	Viewsc          string  `json:"views"`
 	Createddatetime string  `json:"createddatetime"`
+	Ratings string `json:"ratings"`
+	ProfileImage string `json:"profileimage"`
 }

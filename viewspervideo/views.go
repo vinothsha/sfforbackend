@@ -50,7 +50,7 @@ func Views(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	var Res Result
-	Res.Views = Views
+	Res.Views = views
 	json.NewEncoder(w).Encode(Res)
 	// w.WriteHeader(http.StatusCreated)
 	fmt.Println("Data processed sucessfully")
